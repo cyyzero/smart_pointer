@@ -3,7 +3,7 @@
 
 #include <type_traits>
 #include <tuple>
-namespace cyy
+namespace sm_ptr
 {
 
     // Primary template of default_delete, used by unique_ptr
@@ -41,19 +41,54 @@ namespace cyy
         }
     };
 
+    // Unique_ptr for single object
     template<typename T, typename Deleter = default_delete<T>>
     class unique_ptr
     {
+    private:
+        // Use SINFAE to determine whether std::remove_reference<Deleter>::type::pointer exits
+        class _Pointer
+        {
+        private:
+            using _Del = std::remove_reference<Deleter>::type;
+
+            template<U>
+            U::pointer __test(typename U::pointer*);
+
+            template<U>
+            T* __test(...);
+
+        public:
+            using type = decltype(__test<_Del>(0));
+        };
+
+        using tuple_type = std::tuple<typename _Pointer::type, Deleter>;
+        tuple_type _M_t;
+
     public:
-        using pointer = T*;
+        using pointer      = typename _Pointer::type;
         using element_type = T;
         using deleter_type = Deleter;
 
+        //  Constructors
+
+        /// Default ctr
         constexpr unique_ptr() noexcept
-            :M_t()
+            :_M_t()
         {
             static_assert(!std::is_pointer<deleter_type>::value,
                           "constructed with null function pointer deleter");
+            static_assert(!std::is_reference<deleter_type>::value,
+                          "can't constructed with a deleter of reference type");
+        }
+
+        constexpr unique_ptr(nullptr_t) noexcept
+            :_M_t()
+        {
+            static_assert(!std::is_pointer<deleter_type>::value,
+                          "constructed with null function pointer deleter");
+            static_assert(!std::is_reference<deleter_type>::value,
+                          "can't constructed with a deleter of reference type");
         }
 
         explicit
@@ -62,12 +97,14 @@ namespace cyy
         {
             static_assert(!std::is_pointer<deleter_type>::value,
                           "constructed with null function pointer deleter");
+            static_assert(!std::is_reference<deleter_type>::value,
+                          "can't constructed with a deleter of reference type");
         }
 
         unique_ptr(pointer p,
-                   typename conditional<std::is_reference<deleter_type>::value,
-                                        deleter_type,
-                                        const deleter_type&>::type d) noexcept
+                   typename std::conditional<std::is_reference<deleter_type>::value,
+                                             deleter_type,
+                                             const deleter_type&>::type d) noexcept
             : M_t(p, d) { }
 
         unique_ptr(pointer p, typename std::remove_reference<delete_type>::type&& d) noexcept
@@ -78,12 +115,11 @@ namespace cyy
         }
 
         unique_ptr(unique_ptr &&u) noexcept
-        {
+            :_M_t(u.release(), std::forward<deleter_type>(u.get_deleter())) { }
 
-        }
-
-     private:
-        std::tuple<pointer, Deleter> M_t;
+        template <typename U, typename E>
+        unique_ptr(unique_ptr<U, E>&& u) noexcept
+        
 
     }
 }

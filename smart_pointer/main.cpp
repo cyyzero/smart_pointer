@@ -1,8 +1,6 @@
-#include <QCoreApplication>
+#include <memory>
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-
-    return a.exec();
+    std::unique_ptr<>
 }
