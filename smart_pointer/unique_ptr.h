@@ -12,7 +12,7 @@ namespace sm_ptr
         constexpr default_delete() noexcept = default;
 
         //Allows conversion from a deleter for arrays of another type
-        template<typename Up, typename = typename enable_if<std::is_convertible<Up*, Tp*>::value>::type>
+        template<typename Up, typename = typename std::enable_if<std::is_convertible<Up*, Tp*>::value>::type>
             default_delete(const default_delete<Up>&) noexcept {}
 
         void operator()(Tp* ptr) const
@@ -32,7 +32,7 @@ namespace sm_ptr
     public:
         constexpr default_delete() noexcept = default;
 
-        operator()(Tp* ptr) const
+        void operator()(Tp* ptr) const
         {
             static_assert(sizeof(Tp) > 0,
                           "can't delete pointer to incomplete type");
@@ -49,13 +49,13 @@ namespace sm_ptr
         class _Pointer
         {
         private:
-            using _Del = std::remove_reference<Deleter>::type;
+            using _Del = typename std::remove_reference<Deleter>::type;
 
-            template<U>
-            U::pointer __test(typename U::pointer*);
+            template<typename U>
+            static typename U::pointer __test(typename U::pointer*);
 
-            template<U>
-            T* __test(...);
+            template<typename U>
+            static T* __test(...);
 
         public:
             using type = decltype(__test<_Del>(0));
@@ -81,7 +81,7 @@ namespace sm_ptr
                           "can't constructed with a deleter of reference type");
         }
 
-        constexpr unique_ptr(nullptr_t) noexcept
+        constexpr unique_ptr(std::nullptr_t) noexcept
             :_M_t()
         {
             static_assert(!std::is_pointer<deleter_type>::value,
@@ -92,7 +92,7 @@ namespace sm_ptr
 
         explicit
         unique_ptr(pointer p) noexcept
-            :M_t(p, deleter_type())
+            :_M_t(p, deleter_type())
         {
             static_assert(!std::is_pointer<deleter_type>::value,
                           "constructed with null function pointer deleter");
@@ -104,10 +104,10 @@ namespace sm_ptr
                    typename std::conditional<std::is_reference<deleter_type>::value,
                                              deleter_type,
                                              const deleter_type&>::type d) noexcept
-            : M_t(p, d) { }
+            :_M_t(p, d) { }
 
-        unique_ptr(pointer p, typename std::remove_reference<delete_type>::type&& d) noexcept
-            : M_t(std::move(p), std::move(d))
+        unique_ptr(pointer p, typename std::remove_reference<deleter_type>::type&& d) noexcept
+            :_M_t(std::move(p), std::move(d))
         {
             static_assert(!std::is_reference<deleter_type>::value,
                           "rvalue deleter bound to reference");
@@ -125,18 +125,18 @@ namespace sm_ptr
         *  c) Either Deleter is a reference type and E is the same type as D, or Deleter is not a reference type and E is implicitly convertible to D
         */
         template<typename U, typename E,
-                    typename = std::enable_if<
+                    typename = typename std::enable_if<
                         std::is_convertible<typename unique_ptr<U, E>::pointer, pointer>::value &&
                         !std::is_array<U>::value &&
-                        typename std::conditional<
+                        std::conditional<
                             std::is_reference<Deleter>::value,
-                            std::is_same<E, D>,
-                            std::is_convertible<E, D>::type
+                            std::is_same<E, Deleter>,
+                            std::is_convertible<E, Deleter>
                         >::type::value
                     >::type
                 >
         unique_ptr(unique_ptr<U, E>&& u) noexcept
-            :_M_t(u.release(), std::forward<E>(u.get_deleter()));
+            :_M_t(u.release(), std::forward<E>(u.get_deleter())) { };
 
 
         // Destructor
@@ -157,20 +157,20 @@ namespace sm_ptr
         }
 
         // It requires that U is not an array type and unique_ptr<U,E>::pointer is implicitly convertible to pointer
-        template<typename U, typename E
-                typename = std::enable_if<
-                    !std::is_array<U>::value &&
-                    std::is_convertible<unique_ptr<U, E>::pointer, pointer>
+        template<typename U, typename E,
+                    typename = typename std::enable_if<
+                        !std::is_array<U>::value &&
+                        std::is_convertible<typename unique_ptr<U, E>::pointer, pointer>::value
                     >::type
                 >
-        unique_ptr& operator=( unique_ptr<U,E>&& r ) noexcept
+        unique_ptr& operator=(unique_ptr<U,E>&& r) noexcept
         {
             reset(r.release());
             get_deleter() = std::forward<deleter_type>(r.get_deleter());
             return *this;
         }
 
-        unique_ptr& operator=(nullptr_t) noexcept
+        unique_ptr& operator=(std::nullptr_t) noexcept
         {
             reset();
             return *this;
@@ -243,6 +243,6 @@ namespace sm_ptr
         /// Disable copy from lvalue
         unique_ptr(const unique_ptr&) = delete;
         unique_ptr& operator=(const unique_ptr&) = delete;
-    }
+    };
 }
 #endif // UNIQUE_PTR_H

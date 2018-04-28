@@ -1,12 +1,13 @@
-#include <unique_ptr.h>
-
-
+#include "unique_ptr.h"
+#include <iostream>
+#include <string>
+#include <cassert>
 // The example above is from cppreference
 
 // It is tests for unique_ptr for single object
 struct Fooo {
-    Foo(int _val) : val(_val) { std::cout << "Foo...\n"; }
-    ~Foo() { std::cout << "~Foo...\n"; }
+    Fooo(int _val) : val(_val) { std::cout << "Fooo...\n"; }
+    ~Fooo() { std::cout << "~Fooo...\n"; }
     int val;
 };
 
@@ -78,7 +79,7 @@ int main()
             delete ptr;
         };
     
-        std::unique_ptr<int,decltype(deleter)> uniq(new int, deleter);
+        sm_ptr::unique_ptr<int,decltype(deleter)> uniq(new int, deleter);
         std::cout << (uniq ? "not empty\n" : "empty\n");
         uniq.reset();
         std::cout << (uniq ? "not empty\n" : "empty\n");
@@ -88,7 +89,7 @@ int main()
     // Tests for member function release()
     {
         std::cout << "Creating new Foo...\n";
-        std::unique_ptr<Foo> up(new Foo());
+        sm_ptr::unique_ptr<Foo> up(new Foo());
     
         std::cout << "About to release Foo...\n";
         Foo* fp = up.release();
@@ -102,7 +103,7 @@ int main()
     // Tests for reset()
     {
         std::cout << "Creating new Foo...\n";
-        std::unique_ptr<Foo, D> up(new Foo(), D());  // up 占有 Foo 指针（删除器 D ）
+        sm_ptr::unique_ptr<Foo, D> up(new Foo(), D());  // up 占有 Foo 指针（删除器 D ）
     
         std::cout << "Replace owned Foo with a new Foo...\n";
         up.reset(new Foo());  // 调用旧者的删除器
@@ -113,8 +114,8 @@ int main()
 
     // Tests for swap()
     {
-        std::unique_ptr<Fooo> up1(new Fooo(1));
-        std::unique_ptr<Fooo> up2(new Fooo(2));
+        sm_ptr::unique_ptr<Fooo> up1(new Fooo(1));
+        sm_ptr::unique_ptr<Fooo> up2(new Fooo(2));
     
         up1.swap(up2);
     
@@ -124,9 +125,9 @@ int main()
 
     // Tests for get()
     {
-        std::unique_ptr<string> s_p = "Hello, world!";
-        string* s = s_p.get();
-        std::cout << *s << endl;
+        sm_ptr::unique_ptr<std::string> s_p(new std::string("Hello, world!"));
+        auto s = s_p.get();
+        std::cout << *s << std::endl;
     }
 
 }
