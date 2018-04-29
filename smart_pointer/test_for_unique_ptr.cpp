@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+// #include <memory>
+// std::unique_ptr<>
 // The example above is from cppreference
 
 // It is tests for unique_ptr for single object
@@ -128,6 +130,11 @@ int main()
         sm_ptr::unique_ptr<std::string> s_p(new std::string("Hello, world!"));
         auto s = s_p.get();
         std::cout << *s << std::endl;
+    }
+    {
+        sm_ptr::unique_ptr<int[]> ptr(new int[10]);
+        for (int i = 0; i < 10; ++i)
+            ptr[i] = i;
     }
 
 }

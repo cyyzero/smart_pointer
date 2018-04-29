@@ -1,11 +1,8 @@
 # smart_pointer
 
----
 
 ## What is it?
-It's the imitation of smart pointer in C++11/14. I refer to implementation version of libc++. Thanks for it!!
-
----
+It's the imitation of smart pointer in C++11/14. I refer to implementation version of libstdc++. Thanks for it!!
 
 ## What does it consists of?
 
