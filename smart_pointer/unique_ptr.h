@@ -502,5 +502,114 @@ namespace sm_ptr
         unique_ptr(U*,
             typename std::remove_reference<deleter_type>::type&&) = delete;
     };
+
+    template <typename T1, typename D1, typename T2, typename D2>
+    bool operator==(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
+    {
+        return x.get() == y.get();
+    }
+
+    template <typename T1, typename D1, typename T2, typename D2>
+    bool operator!=(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
+    {
+        return x.get() != y.get();
+    }
+
+    template<typename T1, typename D1, typename T2, typename D2>
+    bool operator<(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
+    {
+        using CT = typename std::common_type<typename unique_ptr<T1, D1>::pointer, typename unique_ptr<T2, D2>::pointer>::type;
+        return std::less<CT>()(x.get(), y.get());
+    }
+
+    template<class T1, class D1, class T2, class D2>
+    bool operator<=(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
+    {
+        return !(y < x);
+    }
+
+    template<class T1, class D1, class T2, class D2>
+    bool operator>(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
+    {
+        return y < x;
+    }
+
+    template<class T1, class D1, class T2, class D2>
+    bool operator>=(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
+    {
+        return !(x < y);
+    }
+
+    template <class T, class D>
+    bool operator==(const unique_ptr<T, D>& x, std::nullptr_t) noexcept
+    {
+        return !x;
+    }
+
+    template <class T, class D>
+    bool operator==(std::nullptr_t, const unique_ptr<T, D>& x) noexcept
+    {
+        return !x;
+    }
+
+    template <class T, class D>
+    bool operator!=(const unique_ptr<T, D>& x, std::nullptr_t) noexcept
+    {
+        return (bool)x;
+    }
+
+    template <class T, class D>
+    bool operator!=( std::nullptr_t, const unique_ptr<T, D>& x) noexcept
+    {
+        return (bool)x;
+    }
+
+    template <class T, class D>
+    bool operator<(const unique_ptr<T, D>& x, std::nullptr_t)
+    {
+        return std::less<typename unique_ptr<T, D>::pointer>()(x.get(), nullptr);
+    }
+
+    template <class T, class D>
+    bool operator<(std::nullptr_t, const unique_ptr<T, D>& y)
+    {
+        return std::less<typename unique_ptr<T, D>::pointer>()(nullptr, y.get());
+    }
+
+    template <class T, class D>
+    bool operator<=(const unique_ptr<T, D>& x, std::nullptr_t)
+    {
+        return !(nullptr < x);
+    }
+
+    template <class T, class D>
+    bool operator<=(std::nullptr_t, const unique_ptr<T, D>& y)
+    {
+        return !(y < nullptr);
+    }
+
+    template <class T, class D>
+    bool operator>(const unique_ptr<T, D>& x, std::nullptr_t)
+    {
+        return nullptr < x;
+    }
+
+    template <class T, class D>
+    bool operator>(std::nullptr_t, const unique_ptr<T, D>& y)
+    {
+        return y < nullptr;
+    }
+
+    template <class T, class D>
+    bool operator>=(const unique_ptr<T, D>& x, std::nullptr_t)
+    {
+        return !(x < nullptr);
+    }
+
+    template <class T, class D>
+    bool operator>=(std::nullptr_t, const unique_ptr<T, D>& y)
+    {
+        return !(nullptr < y);
+    }
 }
 #endif // UNIQUE_PTR_H
