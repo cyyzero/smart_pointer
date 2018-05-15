@@ -611,5 +611,45 @@ namespace sm_ptr
     {
         return !(nullptr < y);
     }
+
+
+    template <typename T>
+    struct _MakeUniq
+    {
+        using __signle_object = unique_ptr<T>;
+    };
+
+    template<typename T>
+    struct _MakeUniq<T[]>
+    {
+        using __array = unique_ptr<T[]>;
+    };
+
+    template<typename T, std::size_t bound>
+    struct _MakeUniq<T[bound]>
+    {
+        struct __invalid_type{ };
+    };
+
+    // make_unique for signle object
+    template <typename T, typename ... Args>
+    inline typename _MakeUniq<T>::__signle_object
+    make_unique(Args&& ... args)
+    {
+        return unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+
+    // make_unique for array of unknown bound
+    template<typename T>
+    inline typename _MakeUniq<T>::__array
+    make_unique(std::size_t size)
+    {
+        return unique_ptr<T>(new typename std::remove_extent<T>::type[size]());
+    }
+
+    // make_unique for array with known bound is deleted
+    template<typename T, typename ... Args>
+    inline typename _MakeUniq<T>::__invalid_type
+    make_unique(Args&& ... args) = delete;
 }
 #endif // UNIQUE_PTR_H
