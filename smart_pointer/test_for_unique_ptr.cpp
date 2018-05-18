@@ -183,4 +183,9 @@ int main()
                   << "make_unique<Vec3>():      " << *v1 << '\n'
                   << "make_unique<Vec3>(0,1,2): " << *v2 << '\n';
     }
+    {
+        Foo* foo = new Foo();
+        sm_ptr::unique_ptr<Foo> up(foo);
+        std::cout << "hash(up):  " << sm_ptr::unique_ptr_hash()(up) << std::endl;
+    }
 }

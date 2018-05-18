@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <tuple>
+#include <functional>
 namespace sm_ptr
 {
     // Primary template of default_delete, used by unique_ptr
@@ -657,6 +658,16 @@ namespace sm_ptr
     template<typename T, typename ... Args>
     inline typename _MakeUniq<T>::__invalid_type
     make_unique(Args&& ... args) = delete;
+
+    // Hash for unique_ptr
+    struct unique_ptr_hash
+    {
+        template<typename T, typename Deleter>
+        std::size_t operator()(const unique_ptr<T, Deleter>& u) const
+        {
+            return std::hash<typename unique_ptr<T, Deleter>::pointer>()(u.get());
+        }
+    };
 }
 
 #endif // UNIQUE_PTR_H
