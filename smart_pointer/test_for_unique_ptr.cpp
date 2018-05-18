@@ -171,4 +171,16 @@ int main()
             std::cout << "     " << v3[i] << '\n';
         }
     }
+    {
+        sm_ptr::unique_ptr<Vec3> v1 = sm_ptr::make_unique<Vec3>();
+        // 使用匹配这些参数的构造函数
+        sm_ptr::unique_ptr<Vec3> v2 = sm_ptr::make_unique<Vec3>(0, 1, 2);
+        std::cout << "Before swap:" << "\n"
+                  << "make_unique<Vec3>():      " << *v1 << '\n'
+                  << "make_unique<Vec3>(0,1,2): " << *v2 << '\n';
+        sm_ptr::swap(v1, v2);
+        std::cout << "After swap:" << "\n"
+                  << "make_unique<Vec3>():      " << *v1 << '\n'
+                  << "make_unique<Vec3>(0,1,2): " << *v2 << '\n';
+    }
 }

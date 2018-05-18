@@ -503,6 +503,12 @@ namespace sm_ptr
             typename std::remove_reference<deleter_type>::type&&) = delete;
     };
 
+    template<typename T, class Deleter>
+    inline void swap(sm_ptr::unique_ptr<T, Deleter>& lhs, sm_ptr::unique_ptr<T, Deleter>& rhs) noexcept
+    {
+        lhs.swap(rhs);
+    }
+
     template <typename T1, typename D1, typename T2, typename D2>
     inline bool operator==(const unique_ptr<T1, D1>& x, const unique_ptr<T2, D2>& y)
     {
@@ -652,4 +658,5 @@ namespace sm_ptr
     inline typename _MakeUniq<T>::__invalid_type
     make_unique(Args&& ... args) = delete;
 }
+
 #endif // UNIQUE_PTR_H
